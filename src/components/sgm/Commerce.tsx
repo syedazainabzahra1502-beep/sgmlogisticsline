@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
+import { downloadInvoice, type Invoice } from "@/lib/invoice";
 import { cartTotals, fmt, isValidTRN, SERVICES, TIERS, type CartItem } from "@/lib/sgm";
 
 type Ctx = {
@@ -82,7 +83,7 @@ export function CommerceModule() {
   );
 }
 
-const METHODS = ["Card", "Apple Pay", "Dubai Pay", "Purchase Order"] as const;
+const METHODS = ["Card", "Corporate PO / Bank Transfer", "Apple Pay"] as const;
 
 export function CartDrawer() {
   const { items, setQty, clear, open, setOpen, addSubs } = useCart();
@@ -93,7 +94,7 @@ export function CartDrawer() {
   const [card, setCard] = useState({ num: "", exp: "", cvc: "" });
   const [po, setPo] = useState("");
   const [err, setErr] = useState("");
-  const [ref, setRef] = useState("");
+  const [inv, setInv] = useState<Invoice | null>(null);
   const t = cartTotals(items);
   if (!open) return null;
 
@@ -101,12 +102,12 @@ export function CartDrawer() {
 
   const pay = () => {
     if (!company.trim()) return setErr("Company legal name is required.");
-    if (trn && !isValidTRN(trn)) return setErr("UAE TRN must be 15 digits starting with 100.");
+    if (!isValidTRN(trn)) return setErr("UAE TRN is required: 15 digits starting with 100.");
     if (method === "Card" && (card.num.replace(/\s/g, "").length < 15 || !card.exp || card.cvc.length < 3)) return setErr("Enter complete card details.");
-    if (method === "Purchase Order" && !po.trim()) return setErr("Enter your Purchase Order number.");
+    if (method === "Corporate PO / Bank Transfer" && !po.trim()) return setErr("Enter your Purchase Order number.");
     setErr("");
     addSubs(items.filter((i) => TIERS.some((x) => x.id === i.id)).map((i) => i.id));
-    setRef("SGM-" + Date.now().toString(36).toUpperCase());
+    setInv({ ref: "SGM-INV-" + Date.now().toString(36).toUpperCase(), company, trn: trn.replace(/\s|-/g, ""), method: method === "Card" ? `Card (${brand || "card"})` : method, items, date: new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Dubai" }) });
     clear();
     setStep("done");
   };
@@ -115,16 +116,22 @@ export function CartDrawer() {
     <div className="fixed inset-0 z-50 flex justify-end bg-background/70 backdrop-blur-sm" onClick={() => setOpen(false)}>
       <aside onClick={(e) => e.stopPropagation()} className="flex h-full w-full max-w-md flex-col border-l border-border bg-card">
         <div className="flex items-center justify-between border-b border-border p-4">
-          <p className="font-semibold">{step === "checkout" ? "B2B Checkout" : step === "done" ? "Order Confirmed" : "Dispatch Basket"}</p>
+          <p className="font-semibold">{step === "checkout" ? "Enterprise Checkout" : step === "done" ? "Order Confirmed" : "Dispatch Basket"}</p>
           <button onClick={() => { setOpen(false); setStep("cart"); }} className="label-caps hover:text-foreground">Close ✕</button>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-          {step === "done" && (
-            <div className="space-y-2">
-              <p className="text-cleared font-semibold">Payment authorised</p>
-              <p className="text-sm text-muted-foreground">Reference <span className="font-mono text-foreground">{ref}</span>. A VAT tax invoice will be issued to {company}.</p>
+          {step === "done" && inv && (
+            <div className="space-y-4">
+              <div className="rounded-md border border-cleared/40 bg-cleared/10 p-3"><p className="font-semibold text-cleared">Order confirmed</p><p className="text-sm text-muted-foreground">Invoice <span className="font-mono text-foreground">{inv.ref}</span></p></div>
+              <table className="w-full text-sm"><tbody className="divide-y divide-border">
+                {[["Bill to", inv.company], ["TRN", inv.trn], ["Payment", inv.method], ["Date", inv.date]].map(([k, v]) => <tr key={k}><td className="label-caps py-2">{k}</td><td className="text-right font-mono">{v}</td></tr>)}
+                {inv.items.map((i) => <tr key={i.id}><td className="py-2">{i.name} × {i.qty}</td><td className="text-right font-mono">{fmt(i.price * i.qty)}</td></tr>)}
+              </tbody></table>
+              <div className="space-y-1 font-mono text-sm">{(() => { const x = cartTotals(inv.items); return <><Row k="Subtotal" v={fmt(x.subtotal)} /><Row k="VAT 5%" v={fmt(x.vat)} /><Row k="Total (USD)" v={fmt(x.total)} bold /></>; })()}</div>
+              <button onClick={() => downloadInvoice(inv)} className="w-full rounded-md bg-primary py-2.5 font-semibold text-primary-foreground">Download PDF Tax Invoice</button>
             </div>
           )}
+
           {step === "cart" && (items.length === 0 ? <p className="text-sm text-muted-foreground">Basket is empty. Add a tier or dispatch service.</p> : (
             <div className="space-y-3">
               {items.map((i) => (
@@ -142,10 +149,10 @@ export function CartDrawer() {
           {step === "checkout" && (
             <div className="space-y-4">
               <div><p className="label-caps mb-1">Company legal name</p><input className="field" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Al Futtaim Engineering LLC" /></div>
-              <div><p className="label-caps mb-1">UAE TRN (VAT invoicing)</p><input className="field font-mono" value={trn} onChange={(e) => setTrn(e.target.value)} placeholder="100XXXXXXXXXXXX" maxLength={17} /></div>
+              <div><p className="label-caps mb-1">UAE TRN (Tax Registration Number) *</p><input className="field font-mono" value={trn} onChange={(e) => setTrn(e.target.value)} placeholder="100XXXXXXXXXXXX" maxLength={17} /></div>
               <div>
                 <p className="label-caps mb-1">Payment method</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {METHODS.map((m) => <button key={m} onClick={() => setMethod(m)} className={`rounded-md border px-2 py-2 text-xs ${method === m ? "border-primary text-primary" : "border-border"}`}>{m}</button>)}
                 </div>
               </div>
@@ -156,8 +163,8 @@ export function CartDrawer() {
                   <p className="text-xs text-muted-foreground">Visa · Mastercard · AMEX — processed via Stripe</p>
                 </div>
               )}
-              {(method === "Apple Pay" || method === "Dubai Pay") && <p className="rounded-md border border-border p-3 text-sm text-muted-foreground">You'll confirm with {method} after placing the order.</p>}
-              {method === "Purchase Order" && <div><p className="label-caps mb-1">PO / Invoice number</p><input className="field font-mono" value={po} onChange={(e) => setPo(e.target.value)} placeholder="PO-2026-0001" /><p className="mt-1 text-xs text-muted-foreground">Corporate direct transfer, Net-30 terms.</p></div>}
+              {method === "Apple Pay" && <p className="rounded-md border border-border p-3 text-sm text-muted-foreground">Confirm with Face ID / Touch ID on your Apple device.</p>}
+              {method === "Corporate PO / Bank Transfer" && <div><p className="label-caps mb-1">PO / Invoice number</p><input className="field font-mono" value={po} onChange={(e) => setPo(e.target.value)} placeholder="PO-2026-0001" /><p className="mt-1 text-xs text-muted-foreground">Direct bank transfer to Emirates NBD · Net-30 terms.</p></div>}
               {err && <p className="text-sm text-hazard">{err}</p>}
             </div>
           )}
@@ -167,7 +174,7 @@ export function CartDrawer() {
             <Row k="Subtotal" v={fmt(t.subtotal)} /><Row k="VAT 5%" v={fmt(t.vat)} /><Row k="Total (USD)" v={fmt(t.total)} bold />
             {step === "cart"
               ? <button onClick={() => setStep("checkout")} className="mt-3 w-full rounded-md bg-primary py-2.5 font-sans font-semibold text-primary-foreground">Proceed to checkout</button>
-              : <div className="mt-3 flex gap-2"><button onClick={() => setStep("cart")} className="rounded-md border border-border px-4 font-sans">Back</button><button onClick={pay} className="flex-1 rounded-md bg-primary py-2.5 font-sans font-semibold text-primary-foreground">Pay {fmt(t.total)}</button></div>}
+              : <div className="mt-3 flex gap-2"><button onClick={() => setStep("cart")} className="rounded-md border border-border px-4 font-sans">Back</button><button onClick={pay} className="flex-1 rounded-md bg-primary py-2.5 font-sans font-semibold text-primary-foreground">Confirm Payment · {fmt(t.total)}</button></div>}
           </div>
         )}
       </aside>
