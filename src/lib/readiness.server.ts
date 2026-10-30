@@ -18,7 +18,7 @@ consignee, container/BL number, Dubai Trade e-Token for Jebel Ali Gate 4, RTA Ri
 status: "ready" if nothing material is missing, "needs_info" if details are missing, "blocked" if a rule is clearly violated. Never invent values.`;
 
 export async function assessReadiness(input: { shipment: string; cargo: string; notes: string }) {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env['LOVABLE_API_KEY'];
   if (!apiKey) throw new Error("AI is not configured.");
   const provider = createOpenAI({
     baseURL: "https://ai.gateway.lovable.dev/v1",
