@@ -12,7 +12,7 @@ export async function downloadInvoice(inv: Invoice) {
   doc.setFontSize(9); doc.text("Middle East Operations · Jebel Ali Free Zone, Dubai, UAE", 14, 24);
   doc.setFontSize(14); doc.text("TAX INVOICE", 150, 18);
   doc.setFontSize(9);
-  [["Invoice No", inv.ref], ["Date", inv.date], ["Bill to", inv.company], ["Customer TRN", inv.trn], ["Payment", inv.method]].forEach(([k, v], i) => {
+  ([["Invoice No", inv.ref], ["Date", inv.date], ["Bill to", inv.company], ["Customer TRN", inv.trn], ["Payment", inv.method]] as [string, string][]).forEach(([k, v], i) => {
     doc.text(k, 14, 38 + i * 6); doc.text(v, 50, 38 + i * 6);
   });
   let y = 76;
@@ -21,6 +21,6 @@ export async function downloadInvoice(inv: Invoice) {
   doc.line(14, y + 2, 196, y + 2);
   inv.items.forEach((i) => { y += 8; doc.text(i.name, 14, y); doc.text(String(i.qty), 130, y); doc.text(i.price.toFixed(2), 145, y); doc.text((i.price * i.qty).toFixed(2), 175, y); });
   y += 6; doc.line(14, y, 196, y);
-  [["Subtotal", m(t.subtotal)], ["VAT 5% (UAE)", m(t.vat)], ["Total", m(t.total)]].forEach(([k, v], i) => { doc.text(k, 140, y + 8 + i * 6); doc.text(v, 170, y + 8 + i * 6); });
+  ([["Subtotal", m(t.subtotal)], ["VAT 5% (UAE)", m(t.vat)], ["Total", m(t.total)]] as [string, string][]).forEach(([k, v], i) => { doc.text(k, 140, y + 8 + i * 6); doc.text(v, 170, y + 8 + i * 6); });
   doc.save(`${inv.ref}-tax-invoice.pdf`);
 }

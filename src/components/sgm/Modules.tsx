@@ -70,7 +70,7 @@ const TRAILERS = [
   { id: "MOD-16 · DXB-H 39117", route: "Mussafah M-37 → Jebel Ali Gate 4", cargo: 64 },
 ];
 // Jebel Ali Gate 4 → Mussafah corridor (E11)
-const JA = [25.0108, 55.0614], MU = [24.3486, 54.5049];
+const JA: [number, number] = [25.0108, 55.0614], MU: [number, number] = [24.3486, 54.5049];
 const TARE = 38;
 
 function useTelemetry(seed: number, cargo: number) {
@@ -147,8 +147,8 @@ export function AuditModule() {
       const base = new Date("2026-10-30T00:12:00+04:00").getTime();
       for (let i = 0; i < EVENTS.length; i++) {
         const t = new Date(base + i * 47 * 60000).toISOString();
-        const h = await sha256(prev + t + EVENTS[i]);
-        out.push({ t, e: EVENTS[i], h, p: prev }); prev = h;
+        const h = await sha256(prev + t + EVENTS[i]!);
+        out.push({ t, e: EVENTS[i]!, h, p: prev }); prev = h;
       }
       setRows(out.reverse());
     })();
