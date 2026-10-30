@@ -14,12 +14,12 @@ const SLOTS = [
 ];
 
 export function GateModule() {
-  const [sync, setSync] = useState(new Date());
-  useEffect(() => { const t = setInterval(() => setSync(new Date()), 15000); return () => clearInterval(t); }, []);
+  const [sync, setSync] = useState<Date | null>(null);
+  useEffect(() => { setSync(new Date()); const t = setInterval(() => setSync(new Date()), 15000); return () => clearInterval(t); }, []);
   return (
     <section className="panel p-5">
       <Header n="01" title="Jebel Ali Gate Status & e-Token Tracker" live />
-      <p className="label-caps mt-1">Dubai Trade / CargoWaves FCL-OUT · last sync {sync.toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai" })} GST</p>
+      <p className="label-caps mt-1">Dubai Trade / CargoWaves FCL-OUT · last sync {sync?.toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai" })} GST</p>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="label-caps"><tr><th className="pb-2">Container</th><th>Terminal</th><th>Slot</th><th>e-Token</th><th>Demurrage</th><th>Status</th></tr></thead>
@@ -77,8 +77,8 @@ function useTelemetry(seed: number) {
     g: +(0.18 + Math.abs(Math.sin(Date.now() / 1700 + seed)) * 0.35).toFixed(2),
     speed: Math.round(22 + Math.sin(Date.now() / 5000 + seed) * 6),
   });
-  const [d, setD] = useState(gen);
-  useEffect(() => { const t = setInterval(() => setD(gen()), 1500); return () => clearInterval(t); }, []);
+  const [d, setD] = useState(() => ({ axles: Array(12).fill(18), tilt: 0, g: 0, speed: 0 }));
+  useEffect(() => { setD(gen()); const t = setInterval(() => setD(gen()), 1500); return () => clearInterval(t); }, []);
   return d;
 }
 
