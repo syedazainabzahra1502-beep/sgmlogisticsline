@@ -18,7 +18,7 @@ export function GateModule() {
   useEffect(() => { setSync(new Date()); const t = setInterval(() => setSync(new Date()), 15000); return () => clearInterval(t); }, []);
   return (
     <section className="panel p-5">
-      <Header n="01" title="Jebel Ali Gate Status & e-Token Tracker" live />
+      <Header n="01" title="Jebel Ali Port Gate 4 · Dubai Trade e-Token Appointment Sync" live />
       <p className="label-caps mt-1">Dubai Trade / CargoWaves FCL-OUT · last sync {sync?.toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai" })} GST</p>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -47,7 +47,7 @@ export function PermitModule() {
   );
   return (
     <section className="panel p-5">
-      <Header n="02" title="RTA & DoT Heavy-Lift Permit Clearance" />
+      <Header n="02" title="Dubai RTA Oversized Load Right-of-Way (ROW) Permit" />
       <div className="mt-4 grid grid-cols-2 gap-3">
         {f("weightT", `Weight t (limit ${LIMITS.weightT})`, 1)}{f("widthM", `Width m (limit ${LIMITS.widthM})`, 0.1)}
         {f("heightM", `Height m (limit ${LIMITS.heightM})`, 0.1)}{f("departHour", "Departure hour (GST)", 1)}
@@ -136,8 +136,8 @@ export function AuditModule() {
   }, []);
   return (
     <section className="panel p-5">
-      <Header n="05" title="Cryptographic Dispatch Audit Log" />
-      <p className="label-caps mt-1">SHA-256 hash chain · tamper-proof transit seals for Dubai Customs & port authorities</p>
+      <Header n="05" title="JAFZA / Dubai Customs Digital Manifest Verification" />
+      <p className="label-caps mt-1">SHA-256 hash chain · tamper-proof manifest seals verified against JAFZA & Dubai Customs</p>
       <ol className="mt-4 space-y-2">
         {rows.map((r) => (
           <li key={r.h} className="rounded-md border border-border bg-background/60 p-3">

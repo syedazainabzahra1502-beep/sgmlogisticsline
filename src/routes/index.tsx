@@ -26,7 +26,7 @@ function Index() {
             <p className="label-caps">Middle East Ops · Heavy-Lift Control & Dispatch</p>
           </div>
           <div className="flex items-center gap-2">
-            <a href="https://sgmlogisticsline.com/" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent">Return to Corporate Site</a>
+            <a href="https://sgmlogisticsline.com/" className="rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90">← Return to Corporate Site</a>
             <CartButton />
           </div>
         </div>

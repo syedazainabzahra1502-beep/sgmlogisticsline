@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
+import { downloadInvoice, type Invoice } from "@/lib/invoice";
 import { cartTotals, fmt, isValidTRN, SERVICES, TIERS, type CartItem } from "@/lib/sgm";
 
 type Ctx = {
@@ -148,10 +149,10 @@ export function CartDrawer() {
           {step === "checkout" && (
             <div className="space-y-4">
               <div><p className="label-caps mb-1">Company legal name</p><input className="field" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Al Futtaim Engineering LLC" /></div>
-              <div><p className="label-caps mb-1">UAE TRN (VAT invoicing)</p><input className="field font-mono" value={trn} onChange={(e) => setTrn(e.target.value)} placeholder="100XXXXXXXXXXXX" maxLength={17} /></div>
+              <div><p className="label-caps mb-1">UAE TRN (Tax Registration Number) *</p><input className="field font-mono" value={trn} onChange={(e) => setTrn(e.target.value)} placeholder="100XXXXXXXXXXXX" maxLength={17} /></div>
               <div>
                 <p className="label-caps mb-1">Payment method</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {METHODS.map((m) => <button key={m} onClick={() => setMethod(m)} className={`rounded-md border px-2 py-2 text-xs ${method === m ? "border-primary text-primary" : "border-border"}`}>{m}</button>)}
                 </div>
               </div>
@@ -162,8 +163,8 @@ export function CartDrawer() {
                   <p className="text-xs text-muted-foreground">Visa · Mastercard · AMEX — processed via Stripe</p>
                 </div>
               )}
-              {(method === "Apple Pay" || method === "Dubai Pay") && <p className="rounded-md border border-border p-3 text-sm text-muted-foreground">You'll confirm with {method} after placing the order.</p>}
-              {method === "Purchase Order" && <div><p className="label-caps mb-1">PO / Invoice number</p><input className="field font-mono" value={po} onChange={(e) => setPo(e.target.value)} placeholder="PO-2026-0001" /><p className="mt-1 text-xs text-muted-foreground">Corporate direct transfer, Net-30 terms.</p></div>}
+              {method === "Apple Pay" && <p className="rounded-md border border-border p-3 text-sm text-muted-foreground">Confirm with Face ID / Touch ID on your Apple device.</p>}
+              {method === "Corporate PO / Bank Transfer" && <div><p className="label-caps mb-1">PO / Invoice number</p><input className="field font-mono" value={po} onChange={(e) => setPo(e.target.value)} placeholder="PO-2026-0001" /><p className="mt-1 text-xs text-muted-foreground">Direct bank transfer to Emirates NBD · Net-30 terms.</p></div>}
               {err && <p className="text-sm text-hazard">{err}</p>}
             </div>
           )}
@@ -173,7 +174,7 @@ export function CartDrawer() {
             <Row k="Subtotal" v={fmt(t.subtotal)} /><Row k="VAT 5%" v={fmt(t.vat)} /><Row k="Total (USD)" v={fmt(t.total)} bold />
             {step === "cart"
               ? <button onClick={() => setStep("checkout")} className="mt-3 w-full rounded-md bg-primary py-2.5 font-sans font-semibold text-primary-foreground">Proceed to checkout</button>
-              : <div className="mt-3 flex gap-2"><button onClick={() => setStep("cart")} className="rounded-md border border-border px-4 font-sans">Back</button><button onClick={pay} className="flex-1 rounded-md bg-primary py-2.5 font-sans font-semibold text-primary-foreground">Pay {fmt(t.total)}</button></div>}
+              : <div className="mt-3 flex gap-2"><button onClick={() => setStep("cart")} className="rounded-md border border-border px-4 font-sans">Back</button><button onClick={pay} className="flex-1 rounded-md bg-primary py-2.5 font-sans font-semibold text-primary-foreground">Confirm Payment · {fmt(t.total)}</button></div>}
           </div>
         )}
       </aside>
