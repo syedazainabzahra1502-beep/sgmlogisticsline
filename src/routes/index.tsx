@@ -1,24 +1,44 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CartButton, CartDrawer, CartProvider, CommerceModule } from "@/components/sgm/Commerce";
+import { AuditModule, GateModule, PermitModule, TelemetryModule } from "@/components/sgm/Modules";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "SGM Global Line Logistics — Dubai Heavy-Lift Control & Dispatch" },
+      { name: "description", content: "Jebel Ali gate e-tokens, RTA heavy-lift permits, modular trailer telemetry and B2B dispatch booking for UAE operations." },
+      { property: "og:title", content: "SGM Global Line Logistics — Middle East Operations Portal" },
+      { property: "og:description", content: "Heavy-lift control, permit verification and dispatch commerce for Dubai & Abu Dhabi corridors." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <CartProvider>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-3">
+          <div>
+            <p className="font-semibold tracking-tight">SGM Global Line Logistics</p>
+            <p className="label-caps">Middle East Ops · Heavy-Lift Control & Dispatch</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <a href="https://sgmlogisticsline.com/" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent">Return to Corporate Site</a>
+            <CartButton />
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto grid max-w-7xl gap-5 px-5 py-6 lg:grid-cols-2">
+        <div className="lg:col-span-2"><GateModule /></div>
+        <PermitModule />
+        <AuditModule />
+        <div className="lg:col-span-2"><TelemetryModule /></div>
+        <div className="lg:col-span-2"><CommerceModule /></div>
+      </main>
+      <CartDrawer />
+    </CartProvider>
   );
 }
