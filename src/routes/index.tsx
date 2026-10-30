@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CartButton, CartDrawer, CartProvider, CommerceModule } from "@/components/sgm/Commerce";
+import { ReadinessModule } from "@/components/sgm/Readiness";
 import { AuditModule, GateModule, PermitModule, TelemetryModule } from "@/components/sgm/Modules";
 
 export const Route = createFileRoute("/")({
@@ -35,6 +36,7 @@ function Index() {
         <div className="lg:col-span-2"><GateModule /></div>
         <PermitModule />
         <AuditModule />
+        <div className="lg:col-span-2"><ReadinessModule /></div>
         <div className="lg:col-span-2"><TelemetryModule /></div>
         <div className="lg:col-span-2"><CommerceModule /></div>
       </main>
