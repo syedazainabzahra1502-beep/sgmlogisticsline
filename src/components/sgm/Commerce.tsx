@@ -102,7 +102,7 @@ export function CartDrawer() {
 
   const pay = () => {
     if (!company.trim()) return setErr("Company legal name is required.");
-    if (!isValidTRN(trn)) return setErr("UAE TRN is required: 15 digits starting with 100.");
+    if (!isValidTRN(trn)) return setErr("UAE TRN is required: 15 digits.");
     if (method === "Card" && (card.num.replace(/\s/g, "").length < 15 || !card.exp || card.cvc.length < 3)) return setErr("Enter complete card details.");
     if (method === "Corporate PO / Bank Transfer" && !po.trim()) return setErr("Enter your Purchase Order number.");
     setErr("");
@@ -127,7 +127,7 @@ export function CartDrawer() {
                 {[["Bill to", inv.company], ["TRN", inv.trn], ["Payment", inv.method], ["Date", inv.date]].map(([k, v]) => <tr key={k}><td className="label-caps py-2">{k}</td><td className="text-right font-mono">{v}</td></tr>)}
                 {inv.items.map((i) => <tr key={i.id}><td className="py-2">{i.name} × {i.qty}</td><td className="text-right font-mono">{fmt(i.price * i.qty)}</td></tr>)}
               </tbody></table>
-              <div className="space-y-1 font-mono text-sm">{(() => { const x = cartTotals(inv.items); return <><Row k="Subtotal" v={fmt(x.subtotal)} /><Row k="VAT 5%" v={fmt(x.vat)} /><Row k="Total (USD)" v={fmt(x.total)} bold /></>; })()}</div>
+              <div className="space-y-1 font-mono text-sm">{(() => { const x = cartTotals(inv.items); return <><Row k="Subtotal" v={fmt(x.subtotal)} /><Row k="VAT 5%" v={fmt(x.vat)} /><Row k="Total (AED)" v={fmt(x.total)} bold /></>; })()}</div>
               <button onClick={() => downloadInvoice(inv)} className="w-full rounded-md bg-primary py-2.5 font-semibold text-primary-foreground">Download PDF Tax Invoice</button>
             </div>
           )}
@@ -149,7 +149,7 @@ export function CartDrawer() {
           {step === "checkout" && (
             <div className="space-y-4">
               <div><p className="label-caps mb-1">Company legal name</p><input className="field" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Al Futtaim Engineering LLC" /></div>
-              <div><p className="label-caps mb-1">UAE TRN (Tax Registration Number) *</p><input className="field font-mono" value={trn} onChange={(e) => setTrn(e.target.value)} placeholder="100XXXXXXXXXXXX" maxLength={17} /></div>
+              <div><p className="label-caps mb-1">UAE TRN (Tax Registration Number) *</p><input className="field font-mono" value={trn} onChange={(e) => setTrn(e.target.value)} placeholder="15-digit TRN" maxLength={17} /></div>
               <div>
                 <p className="label-caps mb-1">Payment method</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -164,14 +164,14 @@ export function CartDrawer() {
                 </div>
               )}
               {method === "Apple Pay" && <p className="rounded-md border border-border p-3 text-sm text-muted-foreground">Confirm with Face ID / Touch ID on your Apple device.</p>}
-              {method === "Corporate PO / Bank Transfer" && <div><p className="label-caps mb-1">PO / Invoice number</p><input className="field font-mono" value={po} onChange={(e) => setPo(e.target.value)} placeholder="PO-2026-0001" /><p className="mt-1 text-xs text-muted-foreground">Direct bank transfer to Emirates NBD · Net-30 terms.</p></div>}
+              {method === "Corporate PO / Bank Transfer" && <div><p className="label-caps mb-1">PO / Invoice number</p><input className="field font-mono" value={po} onChange={(e) => setPo(e.target.value)} placeholder="PO-2026-0001" /><p className="mt-1 text-xs text-muted-foreground">Bank transfer to Wio Bank · IBAN AE81 0860 0000 0994 1041 090 · Net-30 terms.</p></div>}
               {err && <p className="text-sm text-hazard">{err}</p>}
             </div>
           )}
         </div>
         {step !== "done" && items.length > 0 && (
           <div className="space-y-1 border-t border-border p-4 font-mono text-sm">
-            <Row k="Subtotal" v={fmt(t.subtotal)} /><Row k="VAT 5%" v={fmt(t.vat)} /><Row k="Total (USD)" v={fmt(t.total)} bold />
+            <Row k="Subtotal" v={fmt(t.subtotal)} /><Row k="VAT 5%" v={fmt(t.vat)} /><Row k="Total (AED)" v={fmt(t.total)} bold />
             {step === "cart"
               ? <button onClick={() => setStep("checkout")} className="mt-3 w-full rounded-md bg-primary py-2.5 font-sans font-semibold text-primary-foreground">Proceed to checkout</button>
               : <div className="mt-3 flex gap-2"><button onClick={() => setStep("cart")} className="rounded-md border border-border px-4 font-sans">Back</button><button onClick={pay} className="flex-1 rounded-md bg-primary py-2.5 font-sans font-semibold text-primary-foreground">Confirm Payment · {fmt(t.total)}</button></div>}

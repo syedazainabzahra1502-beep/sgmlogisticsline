@@ -1,17 +1,27 @@
 export type CartItem = { id: string; name: string; price: number; unit: string; qty: number };
 
 export const SERVICES = [
-  { id: "trailer-12", name: "12-Axle Modular Trailer Booking", price: 2450, unit: "per move", desc: "SPMT-compatible hydraulic modular, 240t payload, crew included." },
-  { id: "rta-escort", name: "RTA Right-of-Way Escort", price: 680, unit: "per convoy", desc: "Licensed escort vehicles & RTA-coordinated ROW marshalling." },
-  { id: "jafza-token", name: "Jebel Ali Gate e-Token Fast-Track", price: 95, unit: "per slot", desc: "Priority FCL-OUT appointment at Gate 4 via Dubai Trade." },
-  { id: "dot-permit", name: "Abu Dhabi DoT Abnormal Load Permit", price: 420, unit: "per permit", desc: "Mussafah corridor filing & route survey." },
+  { id: "route-survey", name: "Heavy Haul Route Survey & Escrow Clearance", price: 6800, unit: "per route", desc: "Corridor bridge & underpass civil clearance, RTA route inspection." },
+  { id: "gate4-marshal", name: "Jebel Ali Port Gate 4 Marshalling & Dubai Trade e-Token", price: 3400, unit: "per move", desc: "Terminal coordination, night-window berth pull, customs manifest." },
+  { id: "rta-row", name: "Dubai RTA Oversized Load ROW Permit Expediting", price: 2350, unit: "per permit", desc: "Multi-axle ROW permit, police escort coordination, bridge load fees." },
+  { id: "trailer-12", name: "12-Axle Modular Trailer Booking", price: 9000, unit: "per move", desc: "Hydraulic modular, 240t payload, crew included." },
 ];
 
 export const TIERS = [
-  { id: "single", name: "Single Dispatch Pass", price: 149, unit: "/ dispatch", features: ["1 dispatch order", "RTA permit pre-check", "Gate e-Token booking"] },
-  { id: "starter", name: "Fleet Starter", price: 499, unit: "/ month", features: ["5 dispatches included", "Permit verification engine", "Dispatch audit log"] },
-  { id: "enterprise", name: "Enterprise Logistics & Telemetry", price: 1299, unit: "/ month", features: ["Unlimited dispatches", "Live API telemetry", "Customs seal export", "Dedicated ops desk"] },
+  { id: "single", name: "Single Dispatch Pass", price: 550, unit: "/ dispatch", features: ["1 dispatch order", "RTA permit pre-check", "Gate e-Token booking"] },
+  { id: "starter", name: "Fleet Starter", price: 1850, unit: "/ month", features: ["5 dispatches included", "Permit verification engine", "Dispatch audit log"] },
+  { id: "enterprise", name: "Enterprise Logistics & Telemetry", price: 4800, unit: "/ month", features: ["Unlimited dispatches", "Live API telemetry", "Customs seal export", "Dedicated ops desk"] },
 ];
+
+export const COMPANY = {
+  name: "SGM Global Line Logistics FZE LLC",
+  nameAr: "إس جي إم جلوبال لاين للخدمات اللوجستية م.م.ح / ذ.م.م",
+  trn: "105290435400001",
+  address: "Amber Gem Tower BC-889965, Shaikh Khalifa Street, Rashidiya 3, Ajman, UAE",
+  email: "info@sgmlogisticsline.com",
+  phone: "+971 55 998 6509",
+  bank: { name: "Wio Bank PJSC", account: "SGM Global Line Logistics FZE LLC", number: "9941041090", iban: "AE810860000009941041090", swift: "WIOBAEADXXX" },
+};
 
 export const VAT_RATE = 0.05;
 
@@ -21,9 +31,9 @@ export function cartTotals(items: CartItem[]) {
   return { subtotal, vat, total: subtotal + vat };
 }
 
-/** UAE TRN: 15 digits, starts with 100 */
+/** UAE TRN: 15 digits, starts with 1 */
 export function isValidTRN(trn: string) {
-  return /^100\d{12}$/.test(trn.replace(/\s|-/g, ""));
+  return /^1\d{14}$/.test(trn.replace(/\s|-/g, ""));
 }
 
 export type Load = { weightT: number; widthM: number; heightM: number; departHour: number };
@@ -51,4 +61,4 @@ export async function sha256(s: string) {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export const fmt = (n: number) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+export const fmt = (n: number) => "AED " + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });

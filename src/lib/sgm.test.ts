@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { checkPermit, cartTotals, isValidTRN } from "./sgm";
+import { checkPermit, cartTotals, isValidTRN, SERVICES } from "./sgm";
 
 describe("RTA permit rules", () => {
   it("clears loads within limits", () => {
@@ -19,6 +19,16 @@ describe("checkout", () => {
   });
   it("validates 15-digit TRN", () => {
     expect(isValidTRN("100123456789012")).toBe(true);
+    expect(isValidTRN("105290435400001")).toBe(true);
     expect(isValidTRN("12345")).toBe(false);
+  });
+});
+
+describe("AED pricing", () => {
+  it("RTA ROW permit is AED 2,350, route survey AED 6,800, Gate 4 AED 3,400", () => {
+    const p = (id: string) => SERVICES.find((s) => s.id === id)?.price;
+    expect(p("rta-row")).toBe(2350);
+    expect(p("route-survey")).toBe(6800);
+    expect(p("gate4-marshal")).toBe(3400);
   });
 });
