@@ -7,7 +7,7 @@ import { Header } from "./Commerce";
 
 const MAP = { ready: "cleared", needs_info: "pending", blocked: "hazard" } as const;
 
-export function ReadinessModule() {
+export function ReadinessModule({ signedIn, onSaved }: { signedIn?: boolean; onSaved?: () => void }) {
   const run = useServerFn(checkReadiness);
   const [f, setF] = useState({ shipment: "", cargo: "", notes: "" });
   const [busy, setBusy] = useState(false);
@@ -15,7 +15,18 @@ export function ReadinessModule() {
   const [r, setR] = useState<Readiness | null>(null);
   const go = async () => {
     setBusy(true); setErr("");
-    try { const res = await run({ data: f }); if (res.ok) setR(res.r); else setErr(res.error); }
+    try {
+      const res = await run({ data: f });
+      if (!res.ok) setErr(res.error);
+      else {
+        setR(res.r);
+        if (signedIn) {
+          const { supabase } = await import("@/integrations/supabase/client");
+          const { error } = await supabase.from("dispatches").insert({ ...f, status: res.r.status, summary: res.r.summary, missing: res.r.missing, risks: res.r.risks });
+          if (error) setErr("Result shown but could not be saved to history."); else onSaved?.();
+        }
+      }
+    }
     catch { setErr("The readiness check could not be completed. Please try again."); }
     finally { setBusy(false); }
   };

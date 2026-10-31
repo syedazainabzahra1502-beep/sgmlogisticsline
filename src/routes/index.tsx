@@ -1,4 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/hooks/use-session";
+import { HistoryModule } from "@/components/sgm/History";
 import { CartButton, CartDrawer, CartProvider, CommerceModule } from "@/components/sgm/Commerce";
 import { ReadinessModule } from "@/components/sgm/Readiness";
 import { AuditModule, GateModule, PermitModule, TelemetryModule } from "@/components/sgm/Modules";
@@ -18,6 +22,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { user } = useSession();
+  const [k, setK] = useState(0);
   return (
     <CartProvider>
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
@@ -28,6 +34,11 @@ function Index() {
           </div>
           <div className="flex items-center gap-2">
             <a href="https://sgmlogisticsline.com/" className="rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90">← Return to Corporate Site</a>
+            {user ? (
+              <button onClick={() => supabase.auth.signOut()} title={user.email} className="rounded-md border border-border px-3 py-1.5 text-sm">Sign out</button>
+            ) : (
+              <Link to="/auth" className="rounded-md border border-border px-3 py-1.5 text-sm">Dispatcher sign in</Link>
+            )}
             <CartButton />
           </div>
         </div>
@@ -36,7 +47,8 @@ function Index() {
         <div className="lg:col-span-2"><GateModule /></div>
         <PermitModule />
         <AuditModule />
-        <div className="lg:col-span-2"><ReadinessModule /></div>
+        <div className="lg:col-span-2"><ReadinessModule signedIn={!!user} onSaved={() => setK((x) => x + 1)} /></div>
+        <div className="lg:col-span-2"><HistoryModule signedIn={!!user} refreshKey={k} /></div>
         <div className="lg:col-span-2"><TelemetryModule /></div>
         <div className="lg:col-span-2"><CommerceModule /></div>
       </main>
