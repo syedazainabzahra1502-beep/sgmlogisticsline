@@ -19,6 +19,7 @@ describe("checkout", () => {
   });
   it("validates 15-digit TRN", () => {
     expect(isValidTRN("100123456789012")).toBe(true);
+    expect(isValidTRN("105290435400001")).toBe(true);
     expect(isValidTRN("12345")).toBe(false);
   });
 });
