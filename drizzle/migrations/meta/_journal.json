@@ -8,6 +8,13 @@
       "when": 1793443999029,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793518575220,
+      "tag": "0001_operations_jobs_and_private_packets",
+      "breakpoints": true
     }
   ]
 }
