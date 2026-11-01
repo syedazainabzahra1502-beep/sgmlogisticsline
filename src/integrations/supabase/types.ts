@@ -53,12 +53,77 @@ export type Database = {
         }
         Relationships: []
       }
+      operations_jobs: {
+        Row: {
+          client_token: string
+          created_at: string
+          customer: string
+          destination: string
+          details: Json
+          documents: Json
+          driver_token: string
+          id: string
+          milestones: Json
+          origin: string
+          pod: Json | null
+          reference: string
+          share_expires_at: string
+          sharing_enabled: boolean
+          stage: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_token?: string
+          created_at?: string
+          customer?: string
+          destination: string
+          details?: Json
+          documents?: Json
+          driver_token?: string
+          id?: string
+          milestones?: Json
+          origin: string
+          pod?: Json | null
+          reference: string
+          share_expires_at?: string
+          sharing_enabled?: boolean
+          stage?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          client_token?: string
+          created_at?: string
+          customer?: string
+          destination?: string
+          details?: Json
+          documents?: Json
+          driver_token?: string
+          id?: string
+          milestones?: Json
+          origin?: string
+          pod?: Json | null
+          reference?: string
+          share_expires_at?: string
+          sharing_enabled?: boolean
+          stage?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      authorize_operations_driver: { Args: { _token: string }; Returns: Json }
+      complete_operations_delivery: {
+        Args: { _pod: Json; _token: string }
+        Returns: boolean
+      }
+      read_operations_tracking: { Args: { _token: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
