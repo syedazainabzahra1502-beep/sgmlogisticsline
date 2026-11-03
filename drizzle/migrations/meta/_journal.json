@@ -15,6 +15,13 @@
       "when": 1793518575220,
       "tag": "0001_operations_jobs_and_private_packets",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793701915139,
+      "tag": "0002_fleet_directory",
+      "breakpoints": true
     }
   ]
 }
