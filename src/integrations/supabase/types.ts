@@ -53,6 +53,42 @@ export type Database = {
         }
         Relationships: []
       }
+      fleet_assets: {
+        Row: {
+          created_at: string
+          document: string
+          expires_on: string | null
+          id: string
+          kind: string
+          name: string
+          phone: string
+          plate: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document?: string
+          expires_on?: string | null
+          id?: string
+          kind?: string
+          name: string
+          phone?: string
+          plate?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          document?: string
+          expires_on?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          phone?: string
+          plate?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       operations_jobs: {
         Row: {
           client_token: string
