@@ -6,6 +6,7 @@ import { HistoryModule } from "@/components/sgm/History";
 import { CartButton, CartDrawer, CartProvider, CommerceModule } from "@/components/sgm/Commerce";
 import { ReadinessModule } from "@/components/sgm/Readiness";
 import { AuditModule, GateModule, PermitModule, TelemetryModule } from "@/components/sgm/Modules";
+import { OperationsSuite } from "@/components/sgm/OperationsSuite";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -49,6 +50,7 @@ function Index() {
         <AuditModule />
         <div className="lg:col-span-2"><ReadinessModule signedIn={!!user} onSaved={() => setK((x) => x + 1)} /></div>
         <div className="lg:col-span-2"><HistoryModule signedIn={!!user} refreshKey={k} /></div>
+        <div className="lg:col-span-2"><OperationsSuite signedIn={!!user} /></div>
         <div className="lg:col-span-2"><TelemetryModule /></div>
         <div className="lg:col-span-2"><CommerceModule /></div>
       </main>
