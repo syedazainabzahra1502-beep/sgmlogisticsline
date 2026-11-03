@@ -2,7 +2,8 @@ import { z } from 'zod';
 import type { Json, Tables } from '@/integrations/supabase/types';
 
 export const STAGES = ['planned', 'gate_checked_in', 'escort_attached', 'in_transit', 'delivered'] as const;
-export const stageLabel = (s: string) => s.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+const LABELS: Record<string,string> = { planned: 'Job planned', gate_checked_in: 'Jebel Ali Gate 4 entry', escort_attached: 'Escorts attached', in_transit: 'E11 corridor in transit', delivered: 'Delivered (signed e-POD)' };
+export const stageLabel = (s: string) => LABELS[s] ?? s.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 export const DetailsSchema = z.object({
   pickup: z.string().default(''), endTime: z.string().default(''), consignee: z.string().default(''), bl: z.string().default(''),
   driverPhone: z.string().default(''), escortPhone: z.string().default(''), rta: z.string().default(''), dot: z.string().default(''), token: z.string().default(''), customs: z.string().default(''),
