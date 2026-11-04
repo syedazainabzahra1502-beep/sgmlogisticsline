@@ -7,17 +7,32 @@ import { DetailsSchema, STAGES, stageLabel, readDetails, documents, axlePlan, ex
 import { jobPDF } from '@/lib/operations-pdf';
 import { SERVICES, cartTotals, fmt } from '@/lib/sgm';
 import { JobField, DetailsFields, gst } from './JobFields';
-import { useCart } from './Commerce';
+import { useServerFn } from '@tanstack/react-start';
+import { checkReadiness } from '@/lib/readiness.functions';
+import type { Readiness } from '@/lib/readiness.server';
+import { downloadInvoice } from '@/lib/invoice';
+import type { FleetAsset } from '@/lib/fleet';
 
 const tabs = ['Job desk', 'Engineering & route', 'Port & weather', 'Quotation', 'Documents & delivery'] as const;
-export function OperationsSuite({ signedIn }: { signedIn: boolean }) {
+export function OperationsSuite({ signedIn, fleet = [] }: { signedIn: boolean; fleet?: FleetAsset[] }) {
+  const audit = useServerFn(checkReadiness);
+  const [ai, setAi] = useState<Readiness | null>(null);
+  const runAudit = async () => {
+    const shipment = `Job ${base.reference}. Customer: ${base.customer}. Origin: ${base.origin}. Destination: ${base.destination}. Pickup (GST): ${d.pickup}. Transit end (GST): ${d.endTime}. Consignee: ${d.consignee}. BL: ${d.bl}.`;
+    const cargo = `${d.cargo}. Weight ${d.weight} t, trailer tare ${d.tare} t, L ${d.length} m × W ${d.width} m × H ${d.height} m. Axle lines planned ${d.plannedLines} at ${d.lineLimit} t/line limit.`;
+    const notes = `Dubai RTA ROW: ${d.rta || 'none'}. Abu Dhabi permit: ${d.dot || 'none'}. Gate 4 e-Token: ${d.token || 'none'}. Customs: ${d.customs || 'none'}. Escort phone: ${d.escortPhone || 'none'}. Escort verified: ${d.escortVerified}. Route verified: ${d.routeVerified}. Utilities verified: ${d.utilitiesVerified}. Notes: ${d.notes}`;
+    const r = await audit({ data: { shipment, cargo, notes } });
+    if (!r.ok) throw new Error(r.error);
+    setAi(r.r);
+    await supabase.from('dispatches').insert({ shipment, cargo, notes, status: r.r.status, summary: r.r.summary, missing: r.r.missing, risks: r.r.risks });
+  };
+  const drivers = fleet.filter(f => f.kind === 'driver');
   const [jobs, setJobs] = useState<Job[]>([]); const [selected, setSelected] = useState('');
   const [tab, setTab] = useState<(typeof tabs)[number]>('Job desk');
   const [d, setD] = useState<Details>(() => DetailsSchema.parse({}));
   const [base, setBase] = useState({ reference: '', origin: '', destination: '', customer: '' });
   const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false); const [dirty, setDirty] = useState(false);
   const [kind, setKind] = useState('RTA ROW permit'); const [now, setNow] = useState(0); const [qr, setQr] = useState('');
-  const { add } = useCart();
   const job = jobs.find(j => j.id === selected);
   const load = useCallback(async () => {
     if (!signedIn) { setJobs([]); return; }
@@ -85,7 +100,12 @@ export function OperationsSuite({ signedIn }: { signedIn: boolean }) {
     {tab === 'Job desk' && <>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{(['reference','origin','destination','customer'] as const).map(k => <JobField key={k} label={k === 'reference' ? 'Job reference' : k === 'customer' ? 'Customer legal name' : stageLabel(k)} value={base[k]} onChange={v => { setBase({ ...base, [k]: v }); setDirty(true); }} />)}</div>
       <DetailsFields d={d} set={draft} fields={ [['cargo','Cargo description'],['pickup','Pickup (GST)','datetime-local'],['endTime','Transit end (GST)','datetime-local'],['consignee','Consignee'],['bl','BL / container reference'],['driverPhone','Driver WhatsApp (international)'],['escortPhone','Escort lead phone'],['rta','Dubai RTA ROW permit & expiry'],['dot','Abu Dhabi permit & expiry'],['token','Gate 4 e-Token & appointment'],['customs','JAFZA / customs clearance reference']] } />
+      {drivers.length > 0 && <label className="block text-xs text-muted-foreground">Assign driver from directory<select aria-label="Assign driver" className="field mt-1" value="" onChange={e => { const f = drivers.find(x => x.id === e.target.value); if (f) draft({ ...d, driverPhone: f.phone, notes: `${d.notes}${d.notes ? '\n' : ''}Driver: ${f.name}${f.plate ? ` · Plate ${f.plate}` : ''}${f.document ? ` · Pass ${f.document}` : ''}${f.expires_on ? ` (exp ${f.expires_on})` : ''}` }); }}><option value="">Choose driver…</option>{drivers.map(f => <option key={f.id} value={f.id}>{f.name} · {f.phone}{f.expires_on && Date.parse(f.expires_on) < Date.now() ? ' · PASS EXPIRED' : ''}</option>)}</select></label>}
       <JobField label="Transport notes" value={d.notes} onChange={v => draft({ ...d, notes: v })} />
+      <div className="border-l-2 border-primary pl-4">
+        <div className="flex flex-wrap items-center gap-3"><Button variant="outline" disabled={busy} onClick={() => run(runAudit)}>Run AI compliance audit</Button><span className="text-xs text-muted-foreground">Checks this job's details for missing permits, night-window, axle and escort issues.</span></div>
+        {ai && <div className="mt-3 space-y-2 text-sm"><p className={`font-semibold ${ai.status === 'ready' ? 'text-cleared' : ai.status === 'blocked' ? 'text-hazard' : 'text-pending'}`}>{ai.status === 'ready' ? 'Ready' : ai.status === 'blocked' ? 'Blocked' : 'Needs information'}</p><p>{ai.summary}</p>{ai.missing.length > 0 && <ul className="list-disc pl-5">{ai.missing.map((m, i) => <li key={i}>{typeof m === 'string' ? m : JSON.stringify(m)}</li>)}</ul>}{ai.risks.length > 0 && <ul className="list-disc pl-5 text-pending">{ai.risks.map((m, i) => <li key={i}>{typeof m === 'string' ? m : JSON.stringify(m)}</li>)}</ul>}<p className="text-xs text-muted-foreground">AI guidance only. Saved to dispatch history. Confirm with the original permits.</p></div>}
+      </div>
       <div className="flex flex-wrap items-center gap-3"><label className="text-xs text-muted-foreground">Current milestone<select aria-label="Current milestone" className="field mt-1" disabled={!job || dirty || busy || job.stage === 'delivered'} value={job?.stage ?? 'planned'} onChange={e => run(() => updateStage(e.target.value))}>{STAGES.map(s => <option key={s} value={s} disabled={s === 'delivered'}>{stageLabel(s)}</option>)}</select></label><Button variant="outline" disabled={!job || busy} onClick={() => run(async () => { const j = clean(); const r = await supabase.from('operations_jobs').update({ sharing_enabled: !j.sharing_enabled, share_expires_at: new Date(Date.now() + 7 * 86400000).toISOString(), client_token: crypto.randomUUID(), driver_token: crypto.randomUUID() }).eq('id', j.id); if (r.error) throw new Error('Sharing update failed.'); await load(); setMessage(j.sharing_enabled ? 'Links revoked.' : 'Sharing enabled for 7 days.'); })}>{job?.sharing_enabled ? 'Revoke shared links' : 'Enable 7-day sharing'}</Button></div>
       <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => run(() => share(true, true))} disabled={!job || busy}><Share2 />WhatsApp driver</Button><Button variant="outline" onClick={() => run(() => share(false))} disabled={!job || busy}>Copy client link</Button><Button variant="outline" onClick={() => run(() => share(true))} disabled={!job || busy}>Copy driver pass</Button><Button variant="outline" onClick={() => run(async () => { const j = clean(); await jobPDF('packet', j, d, j.sharing_enabled ? links(j).driver : ''); })} disabled={!job || busy}><Download />Dispatch PDF</Button></div>
       {qr && <img src={qr} width="160" height="160" alt="Shared dispatch QR code" />}
@@ -95,7 +115,7 @@ export function OperationsSuite({ signedIn }: { signedIn: boolean }) {
       <h2 className="font-semibold">Axle-line planning</h2><DetailsFields d={d} set={draft} fields={ [['weight','Cargo weight (t)','number'],['tare','Trailer tare (t)','number'],['length','Overall length (m)','number'],['width','Overall width (m)','number'],['height','Overall loaded height (m)','number'],['lineLimit','Approved tonnes per axle line','number'],['plannedLines','Planned axle lines','number']] } />
       <p className="text-xs text-pending">Planning estimate only. Enter the limit from the equipment specification and authority-approved route. Equal load distribution is not bridge certification; tractor loads, axle spacing and center of gravity require engineering review.</p>
       {plan ? <dl className="grid gap-4 border-y border-border py-4 sm:grid-cols-3"><div><dt className="label-caps">Trailer gross</dt><dd className="font-mono text-xl">{plan.gross.toFixed(1)} t</dd></div><div><dt className="label-caps">Minimum lines (estimate)</dt><dd className="font-mono text-xl">{plan.required}</dd></div><div><dt className="label-caps">Estimated per line</dt><dd className={`font-mono text-xl ${plan.sufficient ? 'text-cleared' : 'text-hazard'}`}>{plan.perLine?.toFixed(2) ?? '—'} t · {plan.sufficient ? 'Within entered limit' : 'More lines needed'}</dd></div></dl> : <p className="text-sm text-muted-foreground">Awaiting cargo weight and approved axle-line limit.</p>}
-      <Button variant="outline" onClick={() => { const s = SERVICES.find(s => s.id === 'trailer-12'); if (s) add({ id: s.id, name: s.name, price: s.price, unit: s.unit }); }}>Add 12-axle trailer booking · AED 9,000</Button>
+      <Button variant="outline" onClick={() => { const s = SERVICES.find(s => s.id === 'trailer-12'); if (s && !d.items.some(i => i.id === s.id)) draft({ ...d, items: [...d.items, { id: s.id, name: s.name, price: s.price, qty: 1, unit: s.unit }] }); setMessage('Trailer added to this job\'s quotation.'); }}>Add 12-axle trailer to quotation</Button>
       <h2 className="font-semibold">Authority & escort review</h2>
       <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="label-caps"><tr><th className="py-2">Authority / check</th><th>Evidence</th><th>Review</th></tr></thead><tbody className="divide-y divide-border">{[['Dubai RTA ROW',d.rta],['Abu Dhabi transport authority',d.dot],['Dubai Trade Gate 4',d.token],['JAFZA / Dubai Customs',d.customs]].map(([name,value]) => <tr key={name}><td className="py-3 pr-3">{name}</td><td className="pr-3">{value || 'Not recorded'}</td><td className="text-pending">Verify original approval</td></tr>)}</tbody></table></div>
       {([['escortVerified','Escort category, notice period and border handover confirmed'],['utilitiesVerified','Overhead utilities and loaded-height clearance confirmed'],['routeVerified','Approved route, WIM/axle limits and bridge clearances reviewed']] as const).map(([k,l]) => <label key={k} className="flex items-start gap-2 text-sm"><input type="checkbox" checked={d[k]} onChange={e => draft({ ...d, [k]: e.target.checked })} />{l}</label>)}
@@ -118,6 +138,7 @@ export function OperationsSuite({ signedIn }: { signedIn: boolean }) {
       <JobField label="Commercial terms / waiting & cancellation agreement" value={d.quoteTerms} onChange={v => draft({ ...d, quoteTerms: v })} />
       <p className="font-mono">Subtotal {fmt(totals.subtotal)} · VAT estimate {fmt(totals.vat)} · Total {fmt(totals.total)}</p>
       <Button disabled={!job || busy || !d.items.length} onClick={() => run(async () => { await jobPDF('quote', clean(), d); })}><Download />Quotation PDF</Button>
+      <Button variant="outline" disabled={!job || busy || !d.items.length} onClick={() => run(async () => { const j = clean(); await downloadInvoice({ ref: `INV-${j.reference}`, company: j.customer || 'Customer', trn: d.trn || '—', method: 'Bank transfer · Net-30', date: new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' }), items: [...d.items, ...(d.mobilization ? [{ id: 'mob', name: 'Mobilization', price: d.mobilization, qty: 1, unit: '' }] : [])] }); })}><Download />Tax invoice PDF</Button>
       <p className="text-xs text-muted-foreground">No stamp or signature is fabricated. Quotation is not a tax invoice. The uploaded certificate establishes corporate tax registration, not VAT registration; verify VAT registration before issuing a tax invoice. Trailer price is an estimate; edit negotiated rates.</p>
     </>}
     {tab === 'Documents & delivery' && <>
