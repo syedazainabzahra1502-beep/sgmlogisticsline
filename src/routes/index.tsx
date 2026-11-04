@@ -1,20 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { HistoryModule } from "@/components/sgm/History";
-import { CartButton, CartDrawer, CartProvider, CommerceModule } from "@/components/sgm/Commerce";
-import { ReadinessModule } from "@/components/sgm/Readiness";
-import { AuditModule, GateModule, PermitModule, TelemetryModule } from "@/components/sgm/Modules";
+import { CartProvider } from "@/components/sgm/Commerce";
+import { PermitModule } from "@/components/sgm/Modules";
 import { OperationsSuite } from "@/components/sgm/OperationsSuite";
+import { FleetModule, useFleet } from "@/components/sgm/Fleet";
+import { CredentialsPanel, DemurrageCalc, TrackLookup } from "@/components/sgm/PublicTools";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SGM Global Line Logistics — Dubai Heavy-Lift Control & Dispatch" },
-      { name: "description", content: "Jebel Ali gate e-tokens, RTA heavy-lift permits, modular trailer telemetry and B2B dispatch booking for UAE operations." },
-      { property: "og:title", content: "SGM Global Line Logistics — Middle East Operations Portal" },
-      { property: "og:description", content: "Heavy-lift control, permit verification and dispatch commerce for Dubai & Abu Dhabi corridors." },
+      { title: "SGM Global Line Logistics — UAE Heavy-Haul Operations Desk" },
+      { name: "description", content: "Track SGM shipments, check port free time, and run heavy-haul jobs: permits, axle planning, drivers, quotes, e-POD and tax invoices." },
+      { property: "og:title", content: "SGM Global Line Logistics — UAE Heavy-Haul Operations Desk" },
+      { property: "og:description", content: "Shipment tracking, demurrage countdown and end-to-end heavy-haul job management for Dubai & Abu Dhabi." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -24,14 +24,15 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { user } = useSession();
-  const [k, setK] = useState(0);
+  const signedIn = !!user;
+  const fleet = useFleet(signedIn);
   return (
     <CartProvider>
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-3">
           <div>
             <p className="font-semibold tracking-tight">SGM Global Line Logistics</p>
-            <p className="label-caps">Middle East Ops · Heavy-Lift Control & Dispatch</p>
+            <p className="label-caps">UAE Heavy-Haul Operations Desk</p>
           </div>
           <div className="flex items-center gap-2">
             <a href="https://sgmlogisticsline.com/" className="rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90">← Return to Corporate Site</a>
@@ -40,21 +41,27 @@ function Index() {
             ) : (
               <Link to="/auth" className="rounded-md border border-border px-3 py-1.5 text-sm">Dispatcher sign in</Link>
             )}
-            <CartButton />
           </div>
         </div>
       </header>
       <main className="mx-auto grid max-w-7xl gap-5 px-5 py-6 lg:grid-cols-2">
-        <div className="lg:col-span-2"><GateModule /></div>
-        <PermitModule />
-        <AuditModule />
-        <div className="lg:col-span-2"><ReadinessModule signedIn={!!user} onSaved={() => setK((x) => x + 1)} /></div>
-        <div className="lg:col-span-2"><HistoryModule signedIn={!!user} refreshKey={k} /></div>
-        <div className="lg:col-span-2"><OperationsSuite signedIn={!!user} /></div>
-        <div className="lg:col-span-2"><TelemetryModule /></div>
-        <div className="lg:col-span-2"><CommerceModule /></div>
+        {signedIn ? (
+          <>
+            <div className="lg:col-span-2"><OperationsSuite signedIn fleet={fleet.items} /></div>
+            <div className="lg:col-span-2"><FleetModule signedIn fleet={fleet} /></div>
+            <DemurrageCalc />
+            <PermitModule />
+            <div className="lg:col-span-2"><HistoryModule signedIn refreshKey={0} /></div>
+          </>
+        ) : (
+          <>
+            <TrackLookup />
+            <CredentialsPanel />
+            <DemurrageCalc />
+            <PermitModule />
+          </>
+        )}
       </main>
-      <CartDrawer />
     </CartProvider>
   );
 }
