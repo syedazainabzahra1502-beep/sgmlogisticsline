@@ -102,6 +102,7 @@ export type Database = {
           milestones: Json
           origin: string
           pod: Json | null
+          pretrip: Json | null
           reference: string
           share_expires_at: string
           sharing_enabled: boolean
@@ -121,6 +122,7 @@ export type Database = {
           milestones?: Json
           origin: string
           pod?: Json | null
+          pretrip?: Json | null
           reference: string
           share_expires_at?: string
           sharing_enabled?: boolean
@@ -140,12 +142,73 @@ export type Database = {
           milestones?: Json
           origin?: string
           pod?: Json | null
+          pretrip?: Json | null
           reference?: string
           share_expires_at?: string
           sharing_enabled?: boolean
           stage?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      quote_requests: {
+        Row: {
+          cargo: string
+          company: string
+          contact_name: string
+          created_at: string
+          destination: string
+          email: string
+          height: number
+          id: string
+          job_id: string | null
+          length: number
+          notes: string
+          origin: string
+          phone: string
+          preferred_date: string
+          status: string
+          weight: number
+          width: number
+        }
+        Insert: {
+          cargo: string
+          company: string
+          contact_name: string
+          created_at?: string
+          destination: string
+          email: string
+          height?: number
+          id?: string
+          job_id?: string | null
+          length?: number
+          notes?: string
+          origin: string
+          phone: string
+          preferred_date?: string
+          status?: string
+          weight?: number
+          width?: number
+        }
+        Update: {
+          cargo?: string
+          company?: string
+          contact_name?: string
+          created_at?: string
+          destination?: string
+          email?: string
+          height?: number
+          id?: string
+          job_id?: string | null
+          length?: number
+          notes?: string
+          origin?: string
+          phone?: string
+          preferred_date?: string
+          status?: string
+          weight?: number
+          width?: number
         }
         Relationships: []
       }
@@ -160,6 +223,10 @@ export type Database = {
         Returns: boolean
       }
       read_operations_tracking: { Args: { _token: string }; Returns: Json }
+      save_operations_pretrip: {
+        Args: { _check: Json; _token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
