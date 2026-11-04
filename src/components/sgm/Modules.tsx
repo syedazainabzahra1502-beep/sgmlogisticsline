@@ -58,7 +58,7 @@ export function PermitModule() {
       <div className="mt-4 rounded-md border border-border bg-background/60 p-3">
         <div className="flex items-center justify-between"><span className="label-caps">Verification result</span><Badge s={r.status} /></div>
         <ul className="mt-2 space-y-1 text-sm">{r.flags.map((x) => <li key={x}>· {x}</li>)}</ul>
-        <p className="label-caps mt-3">Approval hash</p>
+        <p className="label-caps mt-3">Input fingerprint (not an authority approval)</p>
         <p className="break-all font-mono text-xs text-primary">{hash}</p>
       </div>
     </section>
