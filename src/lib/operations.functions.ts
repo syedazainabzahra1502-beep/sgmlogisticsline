@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { Database } from '@/integrations/supabase/types';
-import { documents, type Job, type Pod } from './operations';
+import { documents, PRETRIP, type Job, type Pod } from './operations';
 
 const Token = z.object({ token: z.string().uuid() });
 export const trackJob = createServerFn({ method: 'GET' }).inputValidator(i => Token.parse(i)).handler(async ({ data }) => {
@@ -28,7 +28,7 @@ export const driverJob = createServerFn({ method: 'GET' }).inputValidator(i => T
     const r = await supabaseAdmin.storage.from('dispatch-documents').createSignedUrl(f.path, 300);
     return r.data ? { name: f.name, kind: f.kind, url: r.data.signedUrl } : null;
   }));
-  return { reference: j.reference, origin: j.origin, destination: j.destination, stage: j.stage, details: j.details, delivered: Boolean(j.pod), files: files.filter(f => f !== null) };
+  return { reference: j.reference, origin: j.origin, destination: j.destination, stage: j.stage, details: j.details, delivered: Boolean(j.pod), pretrip: (j.pretrip as { by: string; at: string } | null) ?? null, files: files.filter(f => f !== null) };
 });
 
 const Image = z.string().max(4200000).regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/);
@@ -60,4 +60,24 @@ export const completeDelivery = createServerFn({ method: 'POST' }).inputValidato
     if (paths.length) await supabaseAdmin.storage.from('dispatch-documents').remove(paths);
     throw error;
   }
+});
+const Quote = z.object({
+  company: z.string().trim().min(2).max(200), contact_name: z.string().trim().min(2).max(120), email: z.string().trim().email().max(200), phone: z.string().trim().min(7).max(30),
+  origin: z.string().trim().min(2).max(200), destination: z.string().trim().min(2).max(200), cargo: z.string().trim().min(2).max(500),
+  weight: z.number().positive().max(2000), length: z.number().nonnegative().max(200), width: z.number().nonnegative().max(30), height: z.number().nonnegative().max(30),
+  preferred_date: z.string().max(40), notes: z.string().max(2000), website: z.string().max(0),
+});
+export const submitQuote = createServerFn({ method: 'POST' }).inputValidator(i => Quote.parse(i)).handler(async ({ data }) => {
+  const { website: _hp, ...row } = data;
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const r = await supabaseAdmin.from('quote_requests').insert(row).select('id').single();
+  if (r.error) throw new Error('Request not sent. Please retry or call us.');
+  return { id: r.data.id };
+});
+
+export const savePretrip = createServerFn({ method: 'POST' }).inputValidator(i => z.object({ token: z.string().uuid(), name: z.string().trim().min(2).max(120), checks: z.array(z.literal(true)).length(PRETRIP.length) }).parse(i)).handler(async ({ data }) => {
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const r = await supabaseAdmin.rpc('save_operations_pretrip', { _token: data.token, _check: { by: data.name, at: new Date().toISOString(), items: [...PRETRIP] } });
+  if (r.error || !r.data) throw new Error('Checklist not saved. The pass may be expired or the job already delivered.');
+  return { ok: true };
 });
