@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Public quote requests are inserted only via a server function (service role); only the dispatcher email can read them via RLS — anonymous visitors must never read submissions.
