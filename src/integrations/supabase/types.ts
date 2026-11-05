@@ -222,6 +222,7 @@ export type Database = {
         Args: { _pod: Json; _token: string }
         Returns: boolean
       }
+      read_operations_closeout: { Args: { _token: string }; Returns: Json }
       read_operations_tracking: { Args: { _token: string }; Returns: Json }
       save_operations_pretrip: {
         Args: { _check: Json; _token: string }

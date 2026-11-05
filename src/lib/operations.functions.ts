@@ -1,8 +1,8 @@
 import { createServerFn } from '@tanstack/react-start';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import type { Database } from '@/integrations/supabase/types';
-import { documents, PRETRIP, type Job, type Pod } from './operations';
+import type { Database, Json } from '@/integrations/supabase/types';
+import { documents, PRETRIP, DetailsSchema, type Job, type Pod } from './operations';
 
 const Token = z.object({ token: z.string().uuid() });
 export const trackJob = createServerFn({ method: 'GET' }).inputValidator(i => Token.parse(i)).handler(async ({ data }) => {
@@ -15,6 +15,22 @@ export const trackJob = createServerFn({ method: 'GET' }).inputValidator(i => To
   const result = await client.rpc('read_operations_tracking', { _token: data.token });
   if (result.error) throw new Error('Tracking unavailable.');
   return result.data as { reference: string; origin: string; destination: string; stage: string; milestones: { stage: string; at: string }[]; updated_at: string } | null;
+});
+
+export const clientCloseout = createServerFn({ method: 'GET' }).inputValidator(i => Token.parse(i)).handler(async ({ data }) => {
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const r = await supabaseAdmin.rpc('read_operations_closeout', { _token: data.token });
+  if (r.error || !r.data) return null;
+  const j = r.data as unknown as { id: string; user_id: string; reference: string; customer: string; details: Json; pod: Pod };
+  const sign = async (path: string) => {
+    if (!path.startsWith(`${j.user_id}/${j.id}/`)) return null;
+    const s = await supabaseAdmin.storage.from('dispatch-documents').createSignedUrl(path, 600);
+    return s.data?.signedUrl ?? null;
+  };
+  const d = DetailsSchema.parse(j.details);
+  const items = [...d.items, ...(d.mobilization ? [{ id: 'mob', name: 'Mobilization', price: d.mobilization, qty: 1, unit: '' }] : [])];
+  return { reference: j.reference, customer: j.customer || d.consignee || 'Customer', trn: d.trn, items,
+    pod: { receiver: j.pod.receiver, remarks: j.pod.remarks, at: j.pod.at, signature: await sign(j.pod.signature), photos: (await Promise.all(j.pod.photos.map(sign))).filter((u): u is string => !!u) } };
 });
 
 export const driverJob = createServerFn({ method: 'GET' }).inputValidator(i => Token.parse(i)).handler(async ({ data }) => {
