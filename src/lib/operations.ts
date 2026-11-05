@@ -17,6 +17,7 @@ export const DetailsSchema = z.object({
   wind: z.number().nonnegative().default(0), visibility: z.number().nonnegative().default(0), windLimit: z.number().nonnegative().default(0), visibilityLimit: z.number().nonnegative().default(0), weatherSource: z.string().default(''), weatherTime: z.string().default(''), weatherHold: z.boolean().default(false),
   trn: z.string().default(''), quoteDays: z.number().int().min(1).max(365).default(14), mobilization: z.number().nonnegative().default(0), quoteTerms: z.string().default('Subject to route survey, authority approvals and equipment availability. Cancellation and waiting charges require written agreement.'),
   costPermits: z.number().nonnegative().default(0), costEscort: z.number().nonnegative().default(0), costTrailer: z.number().nonnegative().default(0), costFuel: z.number().nonnegative().default(0), costOther: z.number().nonnegative().default(0),
+  clientPhone: z.string().default(''), cargoValue: z.number().nonnegative().default(0), insuranceRate: z.number().nonnegative().max(10).default(0),
   items: z.array(z.object({ id: z.string(), name: z.string(), price: z.number().nonnegative(), unit: z.string(), qty: z.number().int().positive() })).default([]),
 });
 export type Details = z.infer<typeof DetailsSchema>;
@@ -25,6 +26,14 @@ export type Document = { path: string; name: string; kind: string; at: string };
 export type Pod = { receiver: string; remarks: string; at: string; signature: string; photos: string[] };
 export const readDetails = (j: Job) => DetailsSchema.parse(j.details);
 export function documents(value: Json): Document[] { return z.array(z.object({ path: z.string(), name: z.string(), kind: z.string(), at: z.string() })).parse(value); }
+/** Cargo insurance rider: declared value × dispatcher-entered insurer rate (%). Null until both are given. */
+export function insurancePremium(value: number, ratePct: number) {
+  if (value <= 0 || ratePct <= 0) return null;
+  return Math.round(value * ratePct) / 100;
+}
+export function clientUpdate(j: { reference: string; origin: string; destination: string; stage: string }, link: string) {
+  return `SGM Global Line Logistics — shipment update\n${j.reference}: ${j.origin} → ${j.destination}\nStatus: ${stageLabel(j.stage)} (${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Dubai' })} GST)\nTrack: ${link}`;
+}
 export function axlePlan(cargo: number, tare: number, limit: number, lines: number) {
   if (cargo <= 0 || tare < 0 || limit <= 0) return null;
   const gross = cargo + tare;

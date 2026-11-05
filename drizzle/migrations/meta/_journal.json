@@ -29,6 +29,13 @@
       "when": 1793777717807,
       "tag": "0003_quotes_handover_pretrip",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793868154745,
+      "tag": "0004_client_closeout",
+      "breakpoints": true
     }
   ]
 }
