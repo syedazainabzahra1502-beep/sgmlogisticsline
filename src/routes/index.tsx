@@ -6,6 +6,8 @@ import { CartProvider } from "@/components/sgm/Commerce";
 import { PermitModule } from "@/components/sgm/Modules";
 import { OperationsSuite } from "@/components/sgm/OperationsSuite";
 import { FleetModule, useFleet } from "@/components/sgm/Fleet";
+import { QuoteRequest, QuoteInbox } from "@/components/sgm/Quotes";
+import { useState } from "react";
 import { CredentialsPanel, DemurrageCalc, TrackLookup } from "@/components/sgm/PublicTools";
 
 export const Route = createFileRoute("/")({
@@ -26,6 +28,7 @@ function Index() {
   const { user } = useSession();
   const signedIn = !!user;
   const fleet = useFleet(signedIn);
+  const [jobsKey, setJobsKey] = useState(0);
   return (
     <CartProvider>
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
@@ -47,7 +50,8 @@ function Index() {
       <main className="mx-auto grid max-w-7xl gap-5 px-5 py-6 lg:grid-cols-2">
         {signedIn ? (
           <>
-            <div className="lg:col-span-2"><OperationsSuite signedIn fleet={fleet.items} /></div>
+            <QuoteInbox onConverted={() => setJobsKey(k => k + 1)} />
+            <div className="lg:col-span-2"><OperationsSuite key={jobsKey} signedIn fleet={fleet.items} /></div>
             <div className="lg:col-span-2"><FleetModule signedIn fleet={fleet} /></div>
             <DemurrageCalc />
             <PermitModule />
@@ -59,6 +63,7 @@ function Index() {
             <CredentialsPanel />
             <DemurrageCalc />
             <PermitModule />
+            <QuoteRequest />
           </>
         )}
       </main>
