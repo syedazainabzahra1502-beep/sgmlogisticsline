@@ -37,3 +37,8 @@ describe('Operational calculations', () => {
     expect(pretripComplete(PRETRIP.map((_, i) => i > 0))).toBe(false);
   });
 });
+import { insurancePremium } from './operations';
+describe('insurance rider', () => {
+  it('charges value × rate%', () => { expect(insurancePremium(500000, 0.35)).toBe(1750); });
+  it('is off until value and rate are entered', () => { expect(insurancePremium(500000, 0)).toBeNull(); expect(insurancePremium(0, 1)).toBeNull(); });
+});

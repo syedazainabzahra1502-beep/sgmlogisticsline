@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { Plus, Save, Download, Share2, FileUp, RefreshCw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { DetailsSchema, STAGES, stageLabel, readDetails, documents, axlePlan, margin, routeHazards, INTER_EMIRATE_STAGES, exposure, weatherReview, driverPacket, type Job, type Details } from '@/lib/operations';
+import { DetailsSchema, STAGES, stageLabel, readDetails, documents, axlePlan, margin, routeHazards, INTER_EMIRATE_STAGES, exposure, weatherReview, driverPacket, clientUpdate, insurancePremium, type Job, type Details } from '@/lib/operations';
 import { jobPDF } from '@/lib/operations-pdf';
 import { SERVICES, cartTotals, fmt } from '@/lib/sgm';
 import { JobField, DetailsFields, gst } from './JobFields';
