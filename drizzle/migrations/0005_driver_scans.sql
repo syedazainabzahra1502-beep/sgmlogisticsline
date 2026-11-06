@@ -1,0 +1,1 @@
+ALTER TABLE public.operations_jobs ADD COLUMN IF NOT EXISTS scans jsonb NOT NULL DEFAULT '[]'::jsonb;

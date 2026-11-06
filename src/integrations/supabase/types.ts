@@ -104,6 +104,7 @@ export type Database = {
           pod: Json | null
           pretrip: Json | null
           reference: string
+          scans: Json
           share_expires_at: string
           sharing_enabled: boolean
           stage: string
@@ -124,6 +125,7 @@ export type Database = {
           pod?: Json | null
           pretrip?: Json | null
           reference: string
+          scans?: Json
           share_expires_at?: string
           sharing_enabled?: boolean
           stage?: string
@@ -144,6 +146,7 @@ export type Database = {
           pod?: Json | null
           pretrip?: Json | null
           reference?: string
+          scans?: Json
           share_expires_at?: string
           sharing_enabled?: boolean
           stage?: string
