@@ -36,6 +36,13 @@
       "when": 1793868154745,
       "tag": "0004_client_closeout",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793999163741,
+      "tag": "0005_driver_scans",
+      "breakpoints": true
     }
   ]
 }
