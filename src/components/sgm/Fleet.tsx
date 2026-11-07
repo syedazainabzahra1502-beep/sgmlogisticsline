@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { daysLeft, expiryState, type FleetAsset } from '@/lib/fleet';
 import { Header } from './Commerce';
+import { DocScanButton } from './Scanners';
 
 const tone = { expired: 'text-hazard border-hazard/40 bg-hazard/10', due: 'text-pending border-pending/40 bg-pending/10', valid: 'text-cleared border-cleared/40 bg-cleared/10', unknown: 'text-muted-foreground border-border' };
 
@@ -36,6 +37,7 @@ export function FleetModule({ signedIn, fleet }: { signedIn: boolean; fleet: Ret
     <section className="panel p-5">
       <Header n="03" title="Driver & Fleet Directory · Gate Pass and Mulkiya Expiry" />
       <p className="mt-1 text-sm text-muted-foreground">{fleet.items.length} records · {alerts} need renewal within 30 days or are expired.</p>
+      <div className="mt-3"><DocScanButton kind="mulkiya" label="Scan Mulkiya / licence / gate pass" onFields={(m) => setF((cur) => ({ ...cur, kind: m.plate || m.chassisVin ? 'vehicle' : 'driver', name: [m.vehicleMake, m.ownerOrHolder].filter(Boolean).join(' · ') || cur.name, plate: m.plate ?? cur.plate, document: [m.documentNumber, m.chassisVin && `VIN ${m.chassisVin}`].filter(Boolean).join(' · ') || cur.document, expires_on: m.expiry && /^\d{4}-\d{2}-\d{2}$/.test(m.expiry) ? m.expiry : cur.expires_on }))} /></div>
       <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <select aria-label="Type" className="field" value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })}><option value="driver">Driver</option><option value="vehicle">Truck / trailer</option></select>
         <input className="field" placeholder={f.kind === 'driver' ? 'Driver name' : 'Prime mover / trailer'} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
