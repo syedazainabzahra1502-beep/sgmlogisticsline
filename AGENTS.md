@@ -9,3 +9,5 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 - Public quote requests are inserted only via a server function (service role); only the dispatcher email can read them via RLS — anonymous visitors must never read submissions.
+
+- AI document scanning only fills form fields for dispatcher review; it never saves automatically (scanned values must be checked against originals).
