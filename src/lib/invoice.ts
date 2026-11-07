@@ -1,7 +1,7 @@
 import type { CartItem } from "./sgm";
 import { cartTotals, COMPANY } from "./sgm";
 
-export type Invoice = { ref: string; company: string; trn: string; method: string; items: CartItem[]; date: string };
+export type Invoice = { ref: string; company: string; trn: string; method: string; items: CartItem[]; date: string; verifyUrl?: string };
 
 export async function downloadInvoice(inv: Invoice) {
   const { jsPDF } = await import("jspdf");
@@ -31,5 +31,10 @@ export async function downloadInvoice(inv: Invoice) {
     doc.text(k, 14, y + 7 + i * 6); doc.text(v, 50, y + 7 + i * 6);
   });
   doc.setFontSize(8); doc.text("Please quote the invoice number as the transfer reference.", 14, y + 42);
+  if (inv.verifyUrl) {
+    const QR = await import("qrcode");
+    doc.addImage(await QR.toDataURL(inv.verifyUrl), "PNG", 160, y, 34, 34);
+    doc.text("Scan to verify delivery & e-POD", 156, y + 38);
+  }
   doc.save(`${inv.ref}-tax-invoice.pdf`);
 }
