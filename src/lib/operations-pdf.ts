@@ -23,6 +23,7 @@ export async function jobPDF(kind: 'quote' | 'packet' | 'pod', job: Job, d: Deta
     const t = cartTotals(items); line(`Subtotal: AED ${t.subtotal.toFixed(2)} | VAT estimate (5%): AED ${t.vat.toFixed(2)} | Total: AED ${t.total.toFixed(2)}`);
     line('VAT treatment subject to verified VAT registration and applicable supply rules.', 8);
     line(d.quoteTerms); line('Authorized signature: __________________   Company stamp: __________________');
+    if (link) { const QR = await import('qrcode'); if (y > 225) { pdf.addPage(); y = 18; } pdf.addImage(await QR.toDataURL(link), 'PNG', 16, y, 36, 36); pdf.setFontSize(8); pdf.text('Scan to verify this job and view live milestones.', 56, y + 18); y += 40; }
   } else if (kind === 'packet') {
     line(driverPacket(job, d, link), 9);
     if (link) { const QR = await import('qrcode'); if (y > 220) { pdf.addPage(); y = 18; } pdf.addImage(await QR.toDataURL(link), 'PNG', 16, y, 42, 42); }

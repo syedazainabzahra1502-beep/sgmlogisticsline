@@ -26,8 +26,8 @@ export async function scanDocument(kind: "permit" | "mulkiya", file: string) {
   const isPdf = file.startsWith("data:application/pdf");
   const part = isPdf
     ? { type: "file" as const, filename: "document.pdf", data: file.slice(file.indexOf(",") + 1), mediaType: "application/pdf" }
-    : { type: "image" as const, image: new URL(file) };
-  const schema = kind === "permit" ? PermitScanSchema : MulkiyaScanSchema;
+    : { type: "file" as const, data: file.slice(file.indexOf(",") + 1), mediaType: file.slice(5, file.indexOf(";")) };
+  const schema = (kind === "permit" ? PermitScanSchema : MulkiyaScanSchema) as unknown as typeof PermitScanSchema;
   const result = streamText({
     model: provider.responses("openai/gpt-6-astra"),
     instructions: PROMPTS[kind],

@@ -44,7 +44,7 @@ export const driverJob = createServerFn({ method: 'GET' }).inputValidator(i => T
     const r = await supabaseAdmin.storage.from('dispatch-documents').createSignedUrl(f.path, 300);
     return r.data ? { name: f.name, kind: f.kind, url: r.data.signedUrl } : null;
   }));
-  return { reference: j.reference, origin: j.origin, destination: j.destination, stage: j.stage, details: j.details, delivered: Boolean(j.pod), pretrip: (j.pretrip as { by: string; at: string } | null) ?? null, files: files.filter(f => f !== null) };
+  return { reference: j.reference, origin: j.origin, destination: j.destination, stage: j.stage, details: j.details, delivered: Boolean(j.pod), scans: (Array.isArray((j as { scans?: unknown }).scans) ? (j as unknown as { scans: { kind: string; value: string; at: string; lat: number | null; lng: number | null }[] }).scans : []), pretrip: (j.pretrip as { by: string; at: string } | null) ?? null, files: files.filter(f => f !== null) };
 });
 
 const Image = z.string().max(4200000).regex(/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/);
